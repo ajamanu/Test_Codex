@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Review Similar SKUs</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
+  </head>
+  <body>
+    <main class="container">
+      <header>
+        <h1>Review Similar SKUs</h1>
+        <p>
+          We flagged descriptions with a similarity score of {{ threshold }} or higher.
+          Choose whether to merge them into one inventory ID or keep them separate.
+        </p>
+      </header>
+
+      <form action="{{ url_for('finalize_merge') }}" method="post">
+        <input type="hidden" name="session_id" value="{{ session_id }}" />
+
+        {% if groups %}
+          {% for group in groups %}
+          <section class="card group">
+            <div class="group-header">
+              <h2>Similar Group {{ loop.index }}</h2>
+              <div class="options">
+                <label>
+                  <input type="radio" name="decision_{{ group.group_id }}" value="merge" checked />
+                  Merge
+                </label>
+                <label>
+                  <input type="radio" name="decision_{{ group.group_id }}" value="separate" />
+                  Keep separate
+                </label>
+              </div>
+            </div>
+            <table>
+              <thead>
+                <tr>
+                  <th>Inventory ID</th>
+                  <th>Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for idx in group.indices %}
+                <tr class="highlight">
+                  <td>{{ dataframe.loc[idx, 'inventory_id'] }}</td>
+                  <td>{{ dataframe.loc[idx, 'description'] }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </section>
+          {% endfor %}
+
+          <button class="primary" type="submit">Download merged Excel</button>
+        {% else %}
+          <section class="card info">
+            <h2>No Similar Descriptions Found</h2>
+            <p>Download your file with the merged_inventory_id column added.</p>
+            <button class="primary" type="submit">Download Excel</button>
+          </section>
+        {% endif %}
+      </form>
+    </main>
+  </body>
+</html>
